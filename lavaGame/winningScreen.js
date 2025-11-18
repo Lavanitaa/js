@@ -39,7 +39,7 @@ class winningScreen extends Phaser.Scene {
         window.egg = 0;
 
         // restart home
-        this.scene.start("home", {
+        this.scene.start("perloadScreen", {
           playerPos: { x: 663, y: 879 }
         });
       },
