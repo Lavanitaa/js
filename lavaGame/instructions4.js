@@ -4,155 +4,73 @@ class instructions4 extends Phaser.Scene {
   }
 
   preload() {
-    this.load.spritesheet("instructionScreen", "assets/instructionSceen.png", {
+    this.load.spritesheet("scene3", "assets/scene3.png", {
       frameWidth: 640,
       frameHeight: 640,
     });
 
-    this.load.spritesheet("flourImg", "assets/items.png", {
-      frameWidth: 32,
-      frameHeight: 32,
-    });
+    this.load.image("dialogBoxImg", "assets/dialogBox.png");
+  }
 
-    this.load.spritesheet("honeyImg", "assets/items.png", {
-      frameWidth: 32,
-      frameHeight: 32,
-    });
-
-    this.load.spritesheet("milkImg", "assets/items.png", {
-      frameWidth: 32,
-      frameHeight: 32,
-    });
-
-    this.load.spritesheet("eggImg", "assets/items.png", {
-      frameWidth: 32,
-      frameHeight: 32,
-    });
-
-    this.load.spritesheet("chiliImg", "assets/items.png", {
-      frameWidth: 32,
-      frameHeight: 32,
-    });
-
-    this.load.spritesheet("onionImg", "assets/items.png", {
-      frameWidth: 32,
-      frameHeight: 32,
-    });
-
-    this.load.spritesheet("pickleImg", "assets/items.png", {
-      frameWidth: 32,
-      frameHeight: 32,
-    });
-
-    this.load.spritesheet("bananaImg", "assets/items.png", {
-      frameWidth: 32,
-      frameHeight: 32,
+  typeText(textObject, message, speed = 40) {
+    let i = 0;
+    this.time.addEvent({
+      delay: speed, // speed of typing
+      repeat: message.length - 1,
+      callback: () => {
+        textObject.text += message[i];
+        i++;
+      },
     });
   }
+
   create() {
-    console.log("This is instructions4");
+    console.log("This is instructions3");
 
-    // centered & scaled instruction screen
-    let instruction = this.add.image(319, 319, "instructionScreen");
+    this.add.image(320, 320, "scene3");
 
-    // Increase size by exactly 1 px
-    instruction.setDisplaySize(instruction.width + 1, instruction.height + 1);
+    this.add.image(320, 500, "dialogBoxImg");
 
-    //good ingrediants
+    // Dialog box
+    this.add.image(320, 500, "dialogBoxImg");
 
-    this.anims.create({
-      key: "slowegg",
-      frames: this.anims.generateFrameNumbers("eggImg", {
-        start: 0,
-        end: 3,
-      }),
-      frameRate: 5,
-      repeat: -1,
+    // Start with empty text
+    let line1 = this.add.text(95, 450, "", {
+  fontFamily: "pixelify",
+      fontSize: "17px",
+      fill: "#6f2e00",
     });
-
-    this.anims.create({
-      key: "slowmilk",
-      frames: this.anims.generateFrameNumbers("milkImg", {
-        start: 9,
-        end: 11,
-      }),
-      frameRate: 5,
-      repeat: -1,
+     let line2 = this.add.text(70, 480, "", {
+ fontFamily: "pixelify",
+      fontSize: "17px",
+      fill: "#6f2e00",
     });
-
-    this.anims.create({
-      key: "slowflour",
-      frames: this.anims.generateFrameNumbers("flourImg", {
-        start: 16,
-        end: 19,
-      }),
-      frameRate: 5,
-      repeat: -1,
+    let line3 = this.add.text(170, 520, "", {
+ fontFamily: "pixelify",
+      fontSize: "17px",
+      fill: "#6f2e00",
     });
+   
+    // Play typewriter animation
+     this.typeText(
+      line1,
+      "The ingrediants list is on the table! Once you collected",
+      40
+    );
 
-    this.anims.create({
-      key: "slowhoney",
-      frames: this.anims.generateFrameNumbers("honeyImg", {
-        start: 24,
-        end: 27,
-      }),
-      frameRate: 5,
-      repeat: -1,
+
+    this.time.delayedCall(1500, () => {
+      this.typeText(
+        line2,
+        "all the ingrediants come back home so we can make the pie",
+        40
+      );
+    })
+
+
+    this.time.delayedCall(3000, () => {
+      this.typeText(line3, "Press space to pick up ingrediant list", 40);
     });
-
-    //bad ingredinats
-
-    this.anims.create({
-      key: "slowchili",
-      frames: this.anims.generateFrameNumbers("chiliImg", {
-        start: 4,
-        end: 7,
-      }),
-      frameRate: 5,
-      repeat: -1,
-    });
-
-    this.anims.create({
-      key: "slowonion",
-      frames: this.anims.generateFrameNumbers("onionImg", {
-        start: 12,
-        end: 15,
-      }),
-      frameRate: 5,
-      repeat: -1,
-    });
-
-    this.anims.create({
-      key: "slowpickle",
-      frames: this.anims.generateFrameNumbers("pickleImg", {
-        start: 20,
-        end: 23,
-      }),
-      frameRate: 5,
-      repeat: -1,
-    });
-
-    this.anims.create({
-      key: "slowbanana",
-      frames: this.anims.generateFrameNumbers("bananaImg", {
-        start: 28,
-        end: 31,
-      }),
-      frameRate: 5,
-      repeat: -1,
-    });
-
-    //good ingrediants
-    this.add.sprite(160, 220, "eggImg").play("slowegg").setScale(3);
-    this.add.sprite(260, 220, "milkImg").play("slowmilk").setScale(3);
-    this.add.sprite(360, 220, "flourImg").play("slowflour").setScale(3);
-    this.add.sprite(460, 220, "honeyImg").play("slowhoney").setScale(3);
-
-    // bad ingrediants
-    this.add.sprite(160, 360, "eggImg").play("slowchili").setScale(3);
-    this.add.sprite(260, 360, "milkImg").play("slowhoney").setScale(3);
-    this.add.sprite(360, 360, "flourImg").play("slowonion").setScale(3);
-    this.add.sprite(460, 360, "honeyImg").play("slowpickle").setScale(3);
 
     //this.input.once('pointerdown', function(){
     var spaceDown = this.input.keyboard.addKey("SPACE");
@@ -160,8 +78,8 @@ class instructions4 extends Phaser.Scene {
     spaceDown.on(
       "down",
       function () {
-        console.log("Spacebar pressed, goto home");
-        this.scene.start("home", { playerPos: { x: 876, y: 665 } });
+        console.log("Spacebar pressed, goto instructions5");
+        this.scene.start("instructions5");
       },
       this
     );

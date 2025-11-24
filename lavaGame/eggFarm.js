@@ -12,10 +12,15 @@ class eggFarm extends Phaser.Scene {
     this.player = data.player;
     this.inventory = data.inventory;
     this.playerPos = data.playerPos;
+     this.playGateSound = data.playGateSound || false;
   }
   preload() {
     //this is the exported JSON map file
     this.load.tilemapTiledJSON("eggFarm", "assets/eggFarm.tmj");
+
+      this.load.audio("gateOpenClose", "assets/gate.mp3");
+
+    this.load.audio("walkingOnWood", "assets/walkingWood.mp3");
 
     this.load.image(
       "buildingImg",
@@ -37,7 +42,7 @@ class eggFarm extends Phaser.Scene {
       frameHeight: 32,
     });
 
-     this.load.scenePlugin({
+    this.load.scenePlugin({
       key: "AnimatedTiles",
       url: "https://raw.githubusercontent.com/nkholski/phaser-animated-tiles/master/dist/AnimatedTiles.js",
       sceneKey: "animatedTiles",
@@ -47,7 +52,20 @@ class eggFarm extends Phaser.Scene {
   create() {
     console.log("*** eggFarm scene");
     this.scene.stop("showInventory");
-  
+
+       
+    if (this.playGateSound) {
+        this.gateSound = this.sound.add("gateOpenClose", { volume: 2 });
+        this.gateSound.play();
+        this.playGateSound = false; // prevent replaying
+    }
+
+
+    if (!this.walkingSoundPlayed) {
+        this.woodSound = this.sound.add("walkingOnWood", { loop: false, volume: 2 });
+        this.woodSound.play();
+        this.walkingSoundPlayed = true; // mark as played
+    }
 
     let key2Down = this.input.keyboard.addKey(50);
 
@@ -95,10 +113,8 @@ class eggFarm extends Phaser.Scene {
     this.tree2Layer.setCollisionByExclusion(-1, true);
     this.tree3Layer.setCollisionByExclusion(-1, true);
 
-    
     // Init animations on map
     this.animatedTiles.init(map);
-
 
     //main charater
     this.anims.create({
@@ -260,10 +276,10 @@ class eggFarm extends Phaser.Scene {
     this.dialogText.setVisible(false);
 
     if (this.popUp1Area.contains(this.player.x, this.player.y + 20)) {
-      this.dialogText.setText("enter");
+      this.dialogText.setText("Entered from home");
       this.dialogText.setVisible(true);
     } else if (this.popUp2Area.contains(this.player.x, this.player.y + 20)) {
-      this.dialogText.setText("exit");
+      this.dialogText.setText("Exit to home");
       this.dialogText.setVisible(true);
     } else if (this.popUp3Area.contains(this.player.x, this.player.y + 20)) {
       this.dialogText.setText("Enter to collect the Eggs");
@@ -306,6 +322,7 @@ class eggFarm extends Phaser.Scene {
   // Function to jump to home
   home(player, tile) {
     console.log("home function");
+    this.walkingSoundPlayed = false;
 
     //after exit flour farm, player start from here
     let playerPos = {};
@@ -314,11 +331,14 @@ class eggFarm extends Phaser.Scene {
     this.scene.start("home", { playerPos: playerPos });
   }
 
-  insideEggFarm(player, tile) {
+
+
+   insideEggFarm(player, tile) {
     console.log("insideEggFarm function");
     this.scene.start("insideEggFarm", {
       player: player,
       inventory: this.inventory,
+      playGateSound: true, //
     });
   }
 } //////////// end of class world ////////////////////////

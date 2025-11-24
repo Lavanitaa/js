@@ -12,11 +12,16 @@ class world extends Phaser.Scene {
     this.player = data.player;
     this.inventory = data.inventory;
     this.playerPos = data.playerPos;
+    this.playGateSound = data.playGateSound || false;
   }
 
   preload() {
     //this is the exported JSON map file
     this.load.tilemapTiledJSON("world", "assets/flourFarm.tmj");
+
+    this.load.audio("walkingOnWood", "assets/walkingWood.mp3");
+
+    this.load.audio("gateOpenClose", "assets/gate.mp3");
 
     this.load.image(
       "buildingImg",
@@ -38,7 +43,7 @@ class world extends Phaser.Scene {
       frameHeight: 32,
     });
 
-     this.load.scenePlugin({
+    this.load.scenePlugin({
       key: "AnimatedTiles",
       url: "https://raw.githubusercontent.com/nkholski/phaser-animated-tiles/master/dist/AnimatedTiles.js",
       sceneKey: "animatedTiles",
@@ -48,6 +53,23 @@ class world extends Phaser.Scene {
   create() {
     console.log("*** world scene");
     this.scene.stop("showInventory");
+
+    if (!this.walkingSoundPlayed) {
+      this.woodSound = this.sound.add("walkingOnWood", {
+        loop: false,
+        volume: 2,
+      });
+      this.woodSound.play();
+      this.walkingSoundPlayed = true; // mark as played
+    }
+
+    if (this.playGateSound) {
+      this.gateSound = this.sound.add("gateOpenClose", {
+        loop: false,
+        volume: 2,
+      });
+      this.gateSound.play();
+    }
 
     //this.input.once('pointerdown', function(){
     let key1Down = this.input.keyboard.addKey(49);
@@ -88,14 +110,14 @@ class world extends Phaser.Scene {
     this.treeLayer = map.createLayer("treeLayer", tilesArray, 0, 0);
     this.tree2Layer = map.createLayer("tree2Layer", tilesArray, 0, 0);
 
- //item collision
+    //item collision
     this.waterLayer.setCollisionByExclusion(-1, true);
-     this.water2Layer.setCollisionByExclusion(-1, true);
+    this.water2Layer.setCollisionByExclusion(-1, true);
     this.treeLayer.setCollisionByExclusion(-1, true);
     this.tree2Layer.setCollisionByExclusion(-1, true);
     this.itemLayer.setCollisionByExclusion(-1, true);
-    
-     // Init animations on map
+
+    // Init animations on map
     this.animatedTiles.init(map);
 
     //main charater
@@ -133,8 +155,6 @@ class world extends Phaser.Scene {
       repeat: -1,
     });
 
-    var start = map.findObject("objectLayer", (obj) => obj.name === "start");
-
     this.player = this.physics.add
       .sprite(this.playerPos.x, this.playerPos.y, "charaImg")
       .setScale(1.5)
@@ -152,7 +172,7 @@ class world extends Phaser.Scene {
       frameRate: 4,
       repeat: -1,
     });
-// egg farmer npc
+    // egg farmer npc
     let flourFarmer = map.findObject(
       "objectLayer",
       (obj) => obj.name === "flourFarmer"
@@ -204,8 +224,6 @@ class world extends Phaser.Scene {
       this.SIGN3.height
     );
 
-    
-
     this.dialogText = this.add
       .text(0, 0, "", {
         font: "16px Arial Black",
@@ -223,8 +241,7 @@ class world extends Phaser.Scene {
     // Prevent black area of edge of the map
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-
- //player collider
+    //player collider
     this.physics.add.collider(this.player, this.waterLayer);
     this.physics.add.collider(this.player, this.treeLayer);
     this.physics.add.collider(this.player, this.tree2Layer);
@@ -252,10 +269,10 @@ class world extends Phaser.Scene {
 
     // go to home
     if (
-      this.player.x > 1711 &&
-      this.player.x < 1768 &&
-      this.player.y > 729 &&
-      this.player.y < 747
+      this.player.x > 1693 &&
+      this.player.x < 1704 &&
+      this.player.y > 696 &&
+      this.player.y < 742
     ) {
       console.log("Go to home function");
       this.home();
@@ -280,10 +297,10 @@ class world extends Phaser.Scene {
       this.dialogText.setText("Enter to collect the Flour");
       this.dialogText.setVisible(true);
     } else if (this.popUp2Area.contains(this.player.x, this.player.y + 20)) {
-      this.dialogText.setText("Enter");
+      this.dialogText.setText("Entered from home");
       this.dialogText.setVisible(true);
     } else if (this.popUp3Area.contains(this.player.x, this.player.y + 20)) {
-      this.dialogText.setText("Exit");
+      this.dialogText.setText("Exit to home");
       this.dialogText.setVisible(true);
     } else if (
       Phaser.Geom.Rectangle.Contains(
@@ -306,6 +323,7 @@ class world extends Phaser.Scene {
   // Function to jump to room1
   home(player, tile) {
     console.log("home function");
+    this.walkingSoundPlayed = false;
 
     //after exit flour farm, player start from here
     let playerPos = {};
@@ -317,8 +335,9 @@ class world extends Phaser.Scene {
   insideFlourFarm(player, tile) {
     console.log("insideFlourFarm function");
     this.scene.start("insideFlourFarm", {
-      player: player,
+      player: this.player,
       inventory: this.inventory,
+      playGateSound: true, //
     });
   }
 } //////////// end of class world ////////////////////////

@@ -8,9 +8,16 @@ class preload extends Phaser.Scene {
       frameWidth: 640,
       frameHeight: 640,
     });
+
+    this.load.audio("bgmusic", "assets/bg.mp3");
   }
   create() {
     console.log("This is preloadPage");
+
+     if (!this.sys.game.bgMusic) {
+        this.sys.game.bgMusic = this.sound.add("bgmusic", { loop: true, volume: 2.0 });
+        this.sys.game.bgMusic.play();
+    }
 
     this.anims.create({
       key: "coverAnim",

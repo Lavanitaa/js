@@ -12,10 +12,14 @@ class insideHoneyFarm extends Phaser.Scene {
     this.player = data.player;
     this.inventory = data.inventory;
     this.playerPos = data.playerPos;
+    this.playGateSound = data.playGateSound || false;
   }
   preload() {
     //this is the exported JSON map file
     this.load.tilemapTiledJSON("insideHoneyFarm", "assets/insideHoneyFarm.tmj");
+    this.load.audio("playerHit", "assets/hit.mp3");
+    this.load.audio("playerCollect", "assets/itemPickUp.mp3");
+    this.load.audio("gateOpenClose", "assets/gate.mp3");
 
     this.load.image(
       "treeImg",
@@ -44,7 +48,7 @@ class insideHoneyFarm extends Phaser.Scene {
       frameHeight: 32,
     });
 
-     this.load.scenePlugin({
+    this.load.scenePlugin({
       key: "AnimatedTiles",
       url: "https://raw.githubusercontent.com/nkholski/phaser-animated-tiles/master/dist/AnimatedTiles.js",
       sceneKey: "animatedTiles",
@@ -53,9 +57,19 @@ class insideHoneyFarm extends Phaser.Scene {
 
   create() {
     console.log("*** insideHoneyFarm scene");
+    this.collectHoneynd = this.sound.add("playerCollect").setVolume(2);
+    this.collectHit = this.sound.add("playerHit").setVolume(2);
 
-// launch inventory UI and tell it we're in flour farm
-this.scene.launch("showInventory", { farm: "honey" });
+    if (this.playGateSound) {
+      this.gateSound = this.sound.add("gateOpenClose", {
+        loop: false,
+        volume: 2,
+      });
+      this.gateSound.play();
+    }
+
+    // launch inventory UI and tell it we're in flour farm
+    this.scene.launch("showInventory", { farm: "honey" });
 
     let key6Down = this.input.keyboard.addKey(54);
 
@@ -95,7 +109,7 @@ this.scene.launch("showInventory", { farm: "honey" });
 
     this.fenceLayer.setCollisionByExclusion(-1, true);
 
-       // Init animations on map
+    // Init animations on map
     this.animatedTiles.init(map);
 
     //main charater
@@ -313,14 +327,14 @@ this.scene.launch("showInventory", { farm: "honey" });
   } /////////////////// end of create //////////////////////////////
 
   update() {
-    this.physics.moveToObject(this.enemy1, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy2, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy3, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy4, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy5, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy6, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy7, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy8, this.player, 60, 2000);
+    this.physics.moveToObject(this.enemy1, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy2, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy3, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy4, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy5, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy6, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy7, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy8, this.player, 60, 3000);
 
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-160);
@@ -369,7 +383,7 @@ this.scene.launch("showInventory", { farm: "honey" });
     }
   } /////////////////// end of update //////////////////////////////
 
- hitHoney(player, honey) {
+  hitHoney(player, honey) {
     console.log("Player collected honey");
 
     // Remove honey from the scene
@@ -377,12 +391,14 @@ this.scene.launch("showInventory", { farm: "honey" });
 
     window.honey++;
 
+    //sound
+    this.collectHoneynd.play();
+
     // Only send honey
     this.scene
       .get("showInventory")
       .events.emit("inventory", { honey: window.honey });
-}
-
+  }
 
   hitOnion(player, enemy) {
     console.log("Player get hit by onion");
@@ -390,23 +406,26 @@ this.scene.launch("showInventory", { farm: "honey" });
     // shake screen
     this.cameras.main.shake(300);
 
-    // disable enemy body
+    //sound
+    this.collectHit.play();
 
     // reset honey count
     window.honey = 0;
 
     this.scene.start("gameOver", { farm: 2 });
-
-    
   }
 
   // after exit "inside milk farm" player start rom here when entering honey farm
+
   honeyFarm(player, tile) {
     console.log("honeyFarm function");
 
-    let playerPos = {};
-    playerPos.x = 565;
-    playerPos.y = 705;
-    this.scene.start("honeyFarm", { playerPos: playerPos });
+    let playerPos = { x: 565, y: 705 };
+
+    this.scene.start("honeyFarm", {
+      playerPos: playerPos,
+      playGateSound: true, //
+      inventory: this.inventory,
+    });
   }
 } //////////// end of class world ////////////////////////

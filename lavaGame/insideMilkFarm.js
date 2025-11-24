@@ -12,17 +12,19 @@ class insideMilkFarm extends Phaser.Scene {
     this.player = data.player;
     this.inventory = data.inventory;
     this.playerPos = data.playerPos;
+    this.playGateSound = data.playGateSound || false;
   }
   preload() {
-    //this is the exported JSON map file
     this.load.tilemapTiledJSON("insideMilkFarm", "assets/insideMilkFarm.tmj");
+    this.load.audio("playerHit", "assets/hit.mp3");
+    this.load.audio("playerCollect", "assets/itemPickUp.mp3");
+    this.load.audio("gateOpenClose", "assets/gate.mp3");
 
     this.load.image(
       "treeImg",
       "assets/vectoraith_tileset_farmingsims_details_spring_32x32.png"
     );
     this.load.image("natureImg", "assets/nature_32x32.png");
-
     this.load.image(
       "signImg",
       "assets/vectoraith_tileset_farmingsims_buildings_32x32.png"
@@ -32,18 +34,16 @@ class insideMilkFarm extends Phaser.Scene {
       frameWidth: 32,
       frameHeight: 34,
     });
-
     this.load.spritesheet("milkImg", "assets/items.png", {
       frameWidth: 32,
       frameHeight: 32,
     });
-
-     this.load.spritesheet("bananaImg", "assets/items.png", {
+    this.load.spritesheet("bananaImg", "assets/items.png", {
       frameWidth: 32,
       frameHeight: 32,
     });
 
-     this.load.scenePlugin({
+    this.load.scenePlugin({
       key: "AnimatedTiles",
       url: "https://raw.githubusercontent.com/nkholski/phaser-animated-tiles/master/dist/AnimatedTiles.js",
       sceneKey: "animatedTiles",
@@ -53,7 +53,15 @@ class insideMilkFarm extends Phaser.Scene {
   create() {
     console.log("*** insideMilkFarm scene");
     // launch inventory UI and tell it we're in flour farm
-this.scene.launch("showInventory", { farm: "milk" });
+    this.scene.launch("showInventory", { farm: "milk" });
+ // Sounds
+    this.collectMilknd = this.sound.add("playerCollect").setVolume(2);
+    this.collectHit = this.sound.add("playerHit").setVolume(2);
+
+    if (this.playGateSound) {
+        this.gateSound = this.sound.add("gateOpenClose", { loop: false, volume: 2 });
+        this.gateSound.play();
+    }
 
     let key8Down = this.input.keyboard.addKey(56);
 
@@ -93,7 +101,7 @@ this.scene.launch("showInventory", { farm: "milk" });
 
     this.itemLayer.setCollisionByExclusion(-1, true);
 
-       // Init animations on map
+    // Init animations on map
     this.animatedTiles.init(map);
 
     //main charater
@@ -150,8 +158,8 @@ this.scene.launch("showInventory", { farm: "milk" });
       frameRate: 5,
       repeat: -1,
     });
-    
-     //enemy object chili
+
+    //enemy object chili
     this.anims.create({
       key: "fastbanana",
       frames: this.anims.generateFrameNumbers("bananaImg", {
@@ -188,7 +196,7 @@ this.scene.launch("showInventory", { farm: "milk" });
       .sprite(milk5.x, milk5.y, "milkImg")
       .play("slowmilk");
 
-       //enemy banana follow the player
+    //enemy banana follow the player
     let enemy1 = map.findObject("objectLayer", (obj) => obj.name === "enemy1");
     let enemy2 = map.findObject("objectLayer", (obj) => obj.name === "enemy2");
     let enemy3 = map.findObject("objectLayer", (obj) => obj.name === "enemy3");
@@ -246,11 +254,11 @@ this.scene.launch("showInventory", { farm: "milk" });
       .play("fastbanana");
     this.cursors = this.input.keyboard.createCursorKeys();
 
-     //sign board
+    //sign board
     this.SIGN1 = map.findObject("objectLayer", (obj) => obj.name === "sign1");
     this.SIGN2 = map.findObject("objectLayer", (obj) => obj.name === "sign2");
 
-     this.popUp1Area = new Phaser.Geom.Rectangle(
+    this.popUp1Area = new Phaser.Geom.Rectangle(
       this.SIGN1.x,
       this.SIGN1.y,
       this.SIGN1.width,
@@ -275,7 +283,6 @@ this.scene.launch("showInventory", { farm: "milk" });
       .setDepth(100) // Make sure it's above other elements
       .setVisible(false); // Hide it initially
 
-
     // camera follow player
     this.cameras.main.startFollow(this.player);
 
@@ -285,17 +292,24 @@ this.scene.launch("showInventory", { farm: "milk" });
     //collect milk item
     this.physics.add.overlap(
       this.player,
-      [this.milk1, this.milk2, this.milk3, this.milk4, this.milk5, ],
+      [this.milk1, this.milk2, this.milk3, this.milk4, this.milk5],
       this.hitMilk,
       null,
       this
     );
 
-     //enemy chili
+    //enemy chili
     this.physics.add.overlap(
       this.player,
       [
-        this.enemy1, this.enemy2, this.enemy3, this.enemy4, this.enemy5, this.enemy6, this.enemy7, this.enemy8,
+        this.enemy1,
+        this.enemy2,
+        this.enemy3,
+        this.enemy4,
+        this.enemy5,
+        this.enemy6,
+        this.enemy7,
+        this.enemy8,
       ],
       this.hitBanana,
       null,
@@ -307,16 +321,15 @@ this.scene.launch("showInventory", { farm: "milk" });
   } /////////////////// end of create //////////////////////////////
 
   update() {
-    
     //enemy flying towards the player
-    this.physics.moveToObject(this.enemy1, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy2, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy3, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy4, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy5, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy6, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy7, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy8, this.player, 60, 2000);
+    this.physics.moveToObject(this.enemy1, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy2, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy3, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy4, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy5, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy6, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy7, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy8, this.player, 60, 3000);
 
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-160);
@@ -364,7 +377,6 @@ this.scene.launch("showInventory", { farm: "milk" });
       this.dialogText.x = this.player.x;
       this.dialogText.y = this.player.y - 40; // 40 pixels above the player
     }
-
   } /////////////////// end of update //////////////////////////////
 
   hitMilk(player, milk) {
@@ -376,12 +388,13 @@ this.scene.launch("showInventory", { farm: "milk" });
     window.milk++;
     console.log("milk", window.milk);
 
-    
+    //sound
+    this.collectMilknd.play();
+
     // Send correct event to update egg UI
     this.scene
       .get("showInventory")
       .events.emit("inventory", { milk: window.milk });
-   
   }
 
   hitBanana(player, enemy) {
@@ -392,21 +405,28 @@ this.scene.launch("showInventory", { farm: "milk" });
 
     // disable enemy body
     enemy.disableBody(true, true);
-    
-  // reset flour count
+
+    // play hit sound
+    this.collectHit.play();
+
+    // reset milk count
     window.milk = 0;
 
-    this.scene.start("gameOver", {farm: 1});
-    // Add to inventory
+    // go to game over
+    this.scene.start("gameOver", { farm: 1 });
   }
 
-  milkFarm(player, tile) {
+  milkFarm() {
     console.log("milkFarm function");
 
-    //after exit "inside milk farm" , player start from here
     let playerPos = {};
     playerPos.x = 860;
     playerPos.y = 806;
-    this.scene.start("milkFarm", { playerPos: playerPos });
+
+    // Pass playGateSound correctly
+    this.scene.start("milkFarm", {
+      playerPos: playerPos,
+      playGateSound: true,
+    });
   }
 } //////////// end of class world ////////////////////////

@@ -10,6 +10,8 @@ class instructions2 extends Phaser.Scene {
     });
 
     this.load.image("dialogBoxImg", "assets/dialogBox.png");
+
+    this.load.audio("phoneRing", "assets/phone.mp3");
   }
 
   typeText(textObject, message, speed = 40) {
@@ -26,6 +28,9 @@ class instructions2 extends Phaser.Scene {
 
   create() {
     console.log("This is instructions2");
+
+    this.bgMusic = this.sound.add("phoneRing", { loop: true }).setVolume(0.06);
+    this.bgMusic.play();
 
     this.anims.create({
       key: "Scene2Anim",
@@ -45,23 +50,30 @@ class instructions2 extends Phaser.Scene {
     this.add.image(320, 500, "dialogBoxImg");
 
     // Start with empty text
-    let line1 = this.add.text(130, 450, "", {
-      font: "13px Courier",
-      fill: "#0b3f66",
+    let line1 = this.add.text(100, 450, "", {
+      fontFamily: "pixelify",
+      fontSize: "17px",
+      fill: "#6f2e00",
     });
-    let line2 = this.add.text(150, 480, "", {
-      font: "13px Courier",
-      fill: "#0b3f66",
+    let line2 = this.add.text(130, 480, "", {
+      fontFamily: "pixelify",
+      fontSize: "17px",
+      fill: "#6f2e00",
     });
-    let line3 = this.add.text(200, 520, "", {
-      font: "13px Courier",
-      fill: "#0b3f66",
+    let line3 = this.add.text(170, 520, "", {
+      fontFamily: "pixelify",
+      fontSize: "17px",
+      fill: "#6f2e00",
     });
 
     // Play typewriter animation
-    this.typeText(line1, "You were sleeping pecefully when you suddendly hear", 40);
+    this.typeText(
+      line1,
+      "You were sleeping pecefully when you suddendly hear",
+      40
+    );
     this.time.delayedCall(1500, () => {
-      this.typeText(line2, "your phone rings It's a call from Mama Bear!", 40);
+      this.typeText(line2, "your phone rings. It's a call from Mama Bear!", 40);
     });
     this.time.delayedCall(3000, () => {
       this.typeText(line3, "Press space to pick up the phone", 40);
@@ -74,6 +86,7 @@ class instructions2 extends Phaser.Scene {
       "down",
       function () {
         console.log("Spacebar pressed, goto instructions3");
+        this.bgMusic.stop();
         this.scene.start("instructions3");
       },
       this

@@ -15,7 +15,7 @@
     },
     backgroundColor: '#000000',
     pixelArt: true,
-    scene: [preload, world, eggFarm, honeyFarm, milkFarm, home, insideEggFarm, insideMilkFarm, insideFlourFarm, insideHoneyFarm, gameOver,winningScreen,showInventory, instructions2,instructions3, instructions4,]
+    scene: [preload, world, eggFarm, honeyFarm, milkFarm, home, insideEggFarm, insideMilkFarm, insideFlourFarm, insideHoneyFarm, gameOver,winningScreen,showInventory, instructions2,instructions3, instructions4, instructions5, instructions6]
 
    
     

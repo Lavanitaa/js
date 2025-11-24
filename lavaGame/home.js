@@ -17,6 +17,8 @@ class home extends Phaser.Scene {
     //this is the exported JSON map file
     this.load.tilemapTiledJSON("home", "assets/home.tmj");
 
+     this.load.audio("walkingOnWood", "assets/walkingWood.mp3");
+
     this.load.image(
       "buildingImg",
       "assets/vectoraith_tileset_farmingsims_buildings_32x32.png"
@@ -40,6 +42,15 @@ class home extends Phaser.Scene {
 
   create() {
     console.log("*** home scene");
+
+     if (!this.walkingSoundPlayed) {
+      this.woodSound = this.sound.add("walkingOnWood", {
+        loop: false,
+        volume: 2,
+      });
+      this.woodSound.play();
+      this.walkingSoundPlayed = true; // mark as played
+    }
 
     let key5Down = this.input.keyboard.addKey(53);
 
@@ -249,8 +260,8 @@ class home extends Phaser.Scene {
     if (
       this.player.x > 1610 &&
       this.player.x < 1640 &&
-      this.player.y > 345 &&
-      this.player.y < 348
+      this.player.y > 300 &&
+      this.player.y < 358
     ) {
       console.log("Go to honeyFarm function");
       this.honeyFarm();
@@ -322,6 +333,7 @@ class home extends Phaser.Scene {
   // Function to jump to world which is flour farm
   world(player, tile) {
     console.log("world function");
+    this.walkingSoundPlayed = false;
 
     let playerPos = {};
     playerPos.x = 1704;
@@ -332,6 +344,7 @@ class home extends Phaser.Scene {
   // Function to jump to world which is honey farm
   honeyFarm(player, tile) {
     console.log("honeyFarm function");
+    this.walkingSoundPlayed = false;
 
     let playerPos = {};
     playerPos.x = 160;
@@ -342,6 +355,7 @@ class home extends Phaser.Scene {
   // Function to jump to world which is milk farm
   milkFarm(player, tile) {
     console.log("milkFarm function");
+    this.walkingSoundPlayed = false;
 
     let playerPos = {};
     playerPos.x = 90;
@@ -352,6 +366,7 @@ class home extends Phaser.Scene {
   // Function to jump to world which is flour farm
   eggFarm(player, tile) {
     console.log("eggFarm function");
+    this.walkingSoundPlayed = false;
 
     let playerPos = {};
     playerPos.x = 1514;

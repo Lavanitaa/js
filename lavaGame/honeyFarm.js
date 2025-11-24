@@ -12,10 +12,15 @@ class honeyFarm extends Phaser.Scene {
     this.player = data.player;
     this.inventory = data.inventory;
     this.playerPos = data.playerPos;
+    this.playGateSound = data.playGateSound || false;
   }
   preload() {
     //this is the exported JSON map file
     this.load.tilemapTiledJSON("honeyFarm", "assets/honeyFarm.tmj");
+
+    this.load.audio("walkingOnWood", "assets/walkingWood.mp3");
+
+    this.load.audio("gateOpenClose", "assets/gate.mp3");
 
     this.load.image(
       "buildingImg",
@@ -31,7 +36,7 @@ class honeyFarm extends Phaser.Scene {
       frameHeight: 34,
     });
 
-      this.load.spritesheet("beeFarmerImg", "assets/beeFarmer.png", {
+    this.load.spritesheet("beeFarmerImg", "assets/beeFarmer.png", {
       frameWidth: 32,
       frameHeight: 32,
     });
@@ -41,13 +46,28 @@ class honeyFarm extends Phaser.Scene {
       url: "https://raw.githubusercontent.com/nkholski/phaser-animated-tiles/master/dist/AnimatedTiles.js",
       sceneKey: "animatedTiles",
     });
-
-   
   }
 
   create() {
     console.log("*** honeyFarm scene");
     this.scene.stop("showInventory");
+
+    if (!this.walkingSoundPlayed) {
+      this.woodSound = this.sound.add("walkingOnWood", {
+        loop: false,
+        volume: 2,
+      });
+      this.woodSound.play();
+      this.walkingSoundPlayed = true; // mark as played
+    }
+
+    if (this.playGateSound) {
+      this.gateSound = this.sound.add("gateOpenClose", {
+        loop: false,
+        volume: 2,
+      });
+      this.gateSound.play();
+    }
 
     let key3Down = this.input.keyboard.addKey(51);
 
@@ -59,6 +79,15 @@ class honeyFarm extends Phaser.Scene {
       },
       this
     );
+
+    if (!this.walkingSoundPlayed) {
+      this.woodSound = this.sound.add("walkingOnWood", {
+        loop: false,
+        volume: 2,
+      });
+      this.woodSound.play();
+      this.walkingSoundPlayed = true; // mark as played
+    }
 
     // Create the map from main
     let map = this.make.tilemap({
@@ -95,9 +124,8 @@ class honeyFarm extends Phaser.Scene {
     this.treeLayer.setCollisionByExclusion(-1, true);
     this.tree3Layer.setCollisionByExclusion(-1, true);
 
-     // Init animations on map
+    // Init animations on map
     this.animatedTiles.init(map);
-
 
     //main charater
     this.anims.create({
@@ -133,17 +161,13 @@ class honeyFarm extends Phaser.Scene {
       frameRate: 5,
       repeat: -1,
     });
-
-    var start = map.findObject("objectLayer", (obj) => obj.name === "start");
-    var end = map.findObject("objectLayer", (obj) => obj.name === "end");
-
+    
     this.player = this.physics.add
       .sprite(this.playerPos.x, this.playerPos.y, "charaImg")
       .setScale(1.5)
       .play("down");
     this.cursors = this.input.keyboard.createCursorKeys();
-     window.player = this.player;
-
+    window.player = this.player;
 
     //honey farmer npc
     this.anims.create({
@@ -156,7 +180,6 @@ class honeyFarm extends Phaser.Scene {
       repeat: -1,
     });
 
-    
     // honey farmer npc
     let beeFarmer = map.findObject(
       "objectLayer",
@@ -180,14 +203,16 @@ class honeyFarm extends Phaser.Scene {
       60 // height
     );
 
-
-     //sign board
+    //sign board
     this.SIGN1 = map.findObject("objectLayer", (obj) => obj.name === "sign1");
     this.SIGN2 = map.findObject("objectLayer", (obj) => obj.name === "sign2");
     this.SIGN3 = map.findObject("objectLayer", (obj) => obj.name === "sign3");
-    this.BEEFARMER = map.findObject("objectLayer", (obj) => obj.name === "beeFarmer");
+    this.BEEFARMER = map.findObject(
+      "objectLayer",
+      (obj) => obj.name === "beeFarmer"
+    );
 
-     this.popUp1Area = new Phaser.Geom.Rectangle(
+    this.popUp1Area = new Phaser.Geom.Rectangle(
       this.SIGN1.x,
       this.SIGN1.y,
       this.SIGN1.width,
@@ -208,9 +233,7 @@ class honeyFarm extends Phaser.Scene {
       this.SIGN3.height
     );
 
-   
-
-     this.dialogText = this.add
+    this.dialogText = this.add
       .text(0, 0, "", {
         font: "16px Arial Black",
         fill: "#b54f01ff",
@@ -221,13 +244,11 @@ class honeyFarm extends Phaser.Scene {
       .setDepth(100) // Make sure it's above other elements
       .setVisible(false); // Hide it initially
 
-
     // camera follow player
     this.cameras.main.startFollow(this.player);
 
     // Prevent black area of edge of the map
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-
 
     //player collider
 
@@ -239,11 +260,8 @@ class honeyFarm extends Phaser.Scene {
     this.physics.add.collider(this.player, this.beeFarmer);
   } /////////////////// end of create //////////////////////////////
 
-  
-
   update() {
-
-   //sign board
+    //sign board
     this.dialogText.setVisible(false);
 
     // Now handle dialog text display
@@ -251,12 +269,12 @@ class honeyFarm extends Phaser.Scene {
       this.dialogText.setText("Enter to collect the Honey");
       this.dialogText.setVisible(true);
     } else if (this.popUp2Area.contains(this.player.x, this.player.y + 20)) {
-      this.dialogText.setText("exit");
+      this.dialogText.setText("Exit to home");
       this.dialogText.setVisible(true);
-    }else if (this.popUp3Area.contains(this.player.x, this.player.y + 20)) {
-      this.dialogText.setText("enter");
+    } else if (this.popUp3Area.contains(this.player.x, this.player.y + 20)) {
+      this.dialogText.setText("Entered from home");
       this.dialogText.setVisible(true);
-    }else if (
+    } else if (
       Phaser.Geom.Rectangle.Contains(
         this.beeFarmerFront,
         this.player.x,
@@ -291,7 +309,7 @@ class honeyFarm extends Phaser.Scene {
     }
 
     // go to home
- if (
+    if (
       this.player.x > 173 &&
       this.player.x < 224 &&
       this.player.y > 577 &&
@@ -311,14 +329,13 @@ class honeyFarm extends Phaser.Scene {
       console.log("Go to insideHoneyFarm function");
       this.insideHoneyFarm();
     }
-
-
   } /////////////////// end of update //////////////////////////////
 
   // go to home
- 
+
   home(player, tile) {
     console.log("home function");
+    this.walkingSoundPlayed = false;
 
     //after exit honey farm, player start from here
     let playerPos = {};
@@ -327,13 +344,12 @@ class honeyFarm extends Phaser.Scene {
     this.scene.start("home", { playerPos: playerPos });
   }
 
-
-insideHoneyFarm(player, tile) {
+  insideHoneyFarm(player, tile) {
     console.log("insideHoneyFarm function");
     this.scene.start("insideHoneyFarm", {
       player: player,
       inventory: this.inventory,
+      playGateSound: true, //
     });
   }
-
 } //////////// end of class world ////////////////////////

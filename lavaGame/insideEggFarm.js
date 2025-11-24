@@ -8,14 +8,20 @@ class insideEggFarm extends Phaser.Scene {
   }
 
   // incoming data from scene below
-  init(data) {
-    this.player = data.player;
-    this.inventory = data.inventory;
+init(data) {
     this.playerPos = data.playerPos;
-  }
+    this.inventory = data.inventory;
+    this.playGateSound = data.playGateSound || false;
+}
+
+
   preload() {
     //this is the exported JSON map file
     this.load.tilemapTiledJSON("insideEggFarm", "assets/insideEggFarm.tmj");
+    this.load.audio("playerHit", "assets/hit.mp3");
+    this.load.audio("playerCollect", "assets/itemPickUp.mp3");
+    this.load.audio("gateOpenClose", "assets/gate.mp3");
+
 
     this.load.image(
       "treeImg",
@@ -42,7 +48,7 @@ class insideEggFarm extends Phaser.Scene {
       frameHeight: 32,
     });
 
-     this.load.scenePlugin({
+    this.load.scenePlugin({
       key: "AnimatedTiles",
       url: "https://raw.githubusercontent.com/nkholski/phaser-animated-tiles/master/dist/AnimatedTiles.js",
       sceneKey: "animatedTiles",
@@ -52,7 +58,16 @@ class insideEggFarm extends Phaser.Scene {
   create() {
     console.log("*** insideEggFarm scene");
     // launch inventory UI and tell it we're in flour farm
-this.scene.launch("showInventory", { farm: "egg" });
+    this.scene.launch("showInventory", { farm: "egg" });
+    this.collectEggnd = this.sound.add("playerCollect").setVolume(2);
+     this.collectHit = this.sound.add("playerHit").setVolume(2);
+
+    if (this.playGateSound) {
+    this.gateSound = this.sound.add("gateOpenClose", { volume: 2 });
+    this.gateSound.play();
+    this.playGateSound = false;
+}
+
 
     let key7Down = this.input.keyboard.addKey(55);
 
@@ -91,7 +106,7 @@ this.scene.launch("showInventory", { farm: "egg" });
     this.fenceLayer = map.createLayer("fenceLayer", tilesArray, 0, 0);
 
     this.fenceLayer.setCollisionByExclusion(-1, true);
-       // Init animations on map
+    // Init animations on map
     this.animatedTiles.init(map);
 
     //main charater
@@ -245,8 +260,7 @@ this.scene.launch("showInventory", { farm: "egg" });
       .play("fastpickle");
     this.cursors = this.input.keyboard.createCursorKeys();
 
-
-//sign board
+    //sign board
     this.SIGN1 = map.findObject("objectLayer", (obj) => obj.name === "sign1");
     this.SIGN2 = map.findObject("objectLayer", (obj) => obj.name === "sign2");
 
@@ -315,14 +329,14 @@ this.scene.launch("showInventory", { farm: "egg" });
 
   update() {
     //enemy flying towards the player
-    this.physics.moveToObject(this.enemy1, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy2, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy3, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy4, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy5, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy6, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy7, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy8, this.player, 60, 2000);
+    this.physics.moveToObject(this.enemy1, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy2, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy3, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy4, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy5, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy6, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy7, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy8, this.player, 60, 3000);
 
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-160);
@@ -353,8 +367,7 @@ this.scene.launch("showInventory", { farm: "egg" });
       this.eggFarm();
     }
 
-
-        //sign board
+    //sign board
     this.dialogText.setVisible(false);
 
     // Now handle dialog text display
@@ -373,7 +386,7 @@ this.scene.launch("showInventory", { farm: "egg" });
     }
   } /////////////////// end of update //////////////////////////////
 
- hitEgg(player, egg) {
+  hitEgg(player, egg) {
     console.log("Player collected egg");
 
     // Remove egg from the scene
@@ -381,12 +394,14 @@ this.scene.launch("showInventory", { farm: "egg" });
 
     window.egg++;
 
+    //sound
+    this.collectEggnd.play();
+
     // Send correct event to update egg UI
     this.scene
       .get("showInventory")
       .events.emit("inventory", { egg: window.egg });
-}
-
+  }
 
   hitPickle(player, enemy) {
     console.log("Player get hit by chili");
@@ -396,6 +411,9 @@ this.scene.launch("showInventory", { farm: "egg" });
 
     // disable enemy body
     enemy.disableBody(true, true);
+
+    //sound
+    this.collectHit.play();
 
     // reset egg count
     window.egg = 0;
@@ -407,12 +425,15 @@ this.scene.launch("showInventory", { farm: "egg" });
 
   // Function to jump to egg farm
   eggFarm(player, tile) {
-    console.log("eggFarm function");
+  console.log("eggFarm function");
 
-    //after exit inside the egg farm player start from here
-    let playerPos = {};
-    playerPos.x = 810;
-    playerPos.y = 786;
-    this.scene.start("eggFarm", { playerPos: playerPos });
-  }
+  let playerPos = { x: 810, y: 786 };
+
+  this.scene.start("eggFarm", {
+    playerPos: playerPos,
+     playGateSound: true,
+    inventory: this.inventory,
+  });
+}
+
 } //////////// end of class world ////////////////////////

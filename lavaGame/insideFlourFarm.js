@@ -12,10 +12,14 @@ class insideFlourFarm extends Phaser.Scene {
     this.player = data.player;
     this.inventory = data.inventory;
     this.playerPos = data.playerPos;
+    this.playGateSound = data.playGateSound || false;
   }
   preload() {
     //this is the exported JSON map file
     this.load.tilemapTiledJSON("insideFlourFarm", "assets/insideFlourFarm.tmj");
+    this.load.audio("playerCollect", "assets/itemPickUp.mp3");
+    this.load.audio("playerHit", "assets/hit.mp3");
+    this.load.audio("gateOpenClose", "assets/gate.mp3");
 
     this.load.image(
       "treeImg",
@@ -50,6 +54,16 @@ class insideFlourFarm extends Phaser.Scene {
 
   create() {
     console.log("*** insideFlourFarm scene");
+    this.collectFlournd = this.sound.add("playerCollect").setVolume(2);
+    this.collectHit = this.sound.add("playerHit").setVolume(2);
+
+    if (this.playGateSound) {
+      this.gateSound = this.sound.add("gateOpenClose", {
+        loop: false,
+        volume: 2,
+      });
+      this.gateSound.play();
+    }
 
     // launch inventory UI and tell it we're in flour farm
     this.scene.launch("showInventory", { farm: "flour" });
@@ -267,9 +281,9 @@ class insideFlourFarm extends Phaser.Scene {
 
     this.dialogText = this.add
       .text(0, 0, "", {
-        font: "16px Arial Black",
-        fill: "#b54f01ff",
-        stroke: "#000000",
+        fontFamily: "pixelify",
+        fontSize: "17px",
+        fill: "#6f2e00",
         strokeThickness: 4,
       })
       .setOrigin(0.5) // Center the text
@@ -316,14 +330,14 @@ class insideFlourFarm extends Phaser.Scene {
 
   update() {
     //enemy flying towards the player
-    this.physics.moveToObject(this.enemy1, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy2, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy3, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy4, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy5, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy6, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy7, this.player, 60, 2000);
-    this.physics.moveToObject(this.enemy8, this.player, 60, 2000);
+    this.physics.moveToObject(this.enemy1, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy2, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy3, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy4, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy5, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy6, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy7, this.player, 60, 3000);
+    this.physics.moveToObject(this.enemy8, this.player, 60, 3000);
 
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-160);
@@ -359,10 +373,10 @@ class insideFlourFarm extends Phaser.Scene {
 
     // Now handle dialog text display
     if (this.popUp1Area.contains(this.player.x, this.player.y + 20)) {
-      this.dialogText.setText("enter");
+      this.dialogText.setText("Entered from Flour Farm");
       this.dialogText.setVisible(true);
     } else if (this.popUp2Area.contains(this.player.x, this.player.y + 20)) {
-      this.dialogText.setText("exit");
+      this.dialogText.setText("Exit to Flour Farm");
       this.dialogText.setVisible(true);
     }
 
@@ -377,6 +391,9 @@ class insideFlourFarm extends Phaser.Scene {
     flour.destroy();
     window.flour++;
 
+    //sound
+    this.collectFlournd.play();
+
     // Only send flour
     this.scene
       .get("showInventory")
@@ -385,6 +402,9 @@ class insideFlourFarm extends Phaser.Scene {
 
   hitChili(player, enemy) {
     console.log("Player get hit by chili");
+
+    //sound
+    this.collectHit.play();
 
     // shake screen
     this.cameras.main.shake(300);
@@ -400,14 +420,15 @@ class insideFlourFarm extends Phaser.Scene {
     // Add to inventory
   }
 
-  // Function to jump to room1
   world(player, tile) {
     console.log("world function");
 
-    //after exit inside the flour farm player start from here
-    let playerPos = {};
-    playerPos.x = 906;
-    playerPos.y = 669;
-    this.scene.start("world", { playerPos: playerPos });
+    let playerPos = { x: 906, y: 669 };
+
+    this.scene.start("world", {
+      playerPos: playerPos,
+      playGateSound: true, // 
+      inventory: this.inventory,
+    });
   }
 } //////////// end of class world ////////////////////////

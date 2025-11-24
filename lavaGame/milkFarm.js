@@ -12,10 +12,15 @@ class milkFarm extends Phaser.Scene {
     this.player = data.player;
     this.inventory = data.inventory;
     this.playerPos = data.playerPos;
+    this.playGateSound = data.playGateSound || false;
   }
   preload() {
     //this is the exported JSON map file
     this.load.tilemapTiledJSON("milkFarm", "assets/milkFarm.tmj");
+
+      this.load.audio("walkingOnWood", "assets/walkingWood.mp3");
+
+      this.load.audio("gateOpenClose", "assets/gate.mp3");
 
     this.load.image(
       "buildingImg",
@@ -47,6 +52,22 @@ class milkFarm extends Phaser.Scene {
     console.log("*** milkFarm scene");
     this.scene.stop("showInventory");
   
+    if (!this.walkingSoundPlayed) {
+    this.woodSound = this.sound.add("walkingOnWood", {
+        loop: false,
+        volume: 2
+    });
+    this.woodSound.play();
+    this.walkingSoundPlayed = true;  // mark as played
+}
+
+if (this.playGateSound) {
+      this.gateSound = this.sound.add("gateOpenClose", {
+        loop: false,
+        volume: 2,
+      });
+      this.gateSound.play();
+    }
 
     let key4Down = this.input.keyboard.addKey(52);
 
@@ -275,10 +296,10 @@ map.layers.forEach(layer => {
       this.dialogText.setText("Enter to collect the Milk");
       this.dialogText.setVisible(true);
     } else if (this.popUp2Area.contains(this.player.x, this.player.y + 20)) {
-      this.dialogText.setText("exit");
+      this.dialogText.setText("Exit to home");
       this.dialogText.setVisible(true);
     } else if (this.popUp3Area.contains(this.player.x, this.player.y + 20)) {
-      this.dialogText.setText("enter");
+      this.dialogText.setText("Entered from home");
       this.dialogText.setVisible(true);
     } else if (
       Phaser.Geom.Rectangle.Contains(
@@ -317,6 +338,7 @@ map.layers.forEach(layer => {
 
   home(player, tile) {
     console.log("home function");
+    this.walkingSoundPlayed = false;
 
     //after exit milk farm, player start from here
     let playerPos = {};
@@ -325,13 +347,12 @@ map.layers.forEach(layer => {
     this.scene.start("home", { playerPos: playerPos });
   }
 
-  insideMilkFarm(player, tile) {
+    insideMilkFarm(player, tile) {
     console.log("insideMilkFarm function");
-
-    //after exit milk farm, player start from here
-    let playerPos = {};
-    playerPos.x = 233;
-    playerPos.y = 793;
-    this.scene.start("insideMilkFarm", { playerPos: playerPos });
+    this.scene.start("insideMilkFarm", {
+      player: player,
+      inventory: this.inventory,
+      playGateSound: true, //
+    });
   }
 } //////////// end of class world ////////////////////////
